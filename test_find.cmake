@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.18)
+project(TestFind)
+find_package(Qt6 REQUIRED Core Gui Widgets Network Quick QuickControls2 DBus Xml Concurrent)
+find_package(Qt6GuiPrivate REQUIRED)
+message(STATUS "Qt6::GuiPrivate target: " Qt6::GuiPrivate)
+add_executable(test_foo main.cpp)
+target_link_libraries(test_foo Qt6::GuiPrivate)

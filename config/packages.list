@@ -2,6 +2,11 @@
 # Format: satu paket per baris. # komentar. Ini TAMBAHAN dari paket LingmoOS base.
 # Paket proprietary TIDAK BOLEH masuk tanpa catatan lisensi.
 
+# === Live System (wajib untuk boot live) ===
+live-boot
+live-config
+live-config-systemd
+
 # === Base Tools ===
 curl
 wget
@@ -39,7 +44,6 @@ brasero
 
 # === Browser (Debian Bookworm) ===
 firefox-esr
-firefox-esr-l10n-en
 firefox-esr-l10n-id
 
 # === Office ===
