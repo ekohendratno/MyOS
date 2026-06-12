@@ -113,12 +113,15 @@ clone_upstream() {
     return 0
   fi
 
-  log_step "Clone upstream elementary/os"
-  if [[ -d "${PROJECT_ROOT}/upstream/elementary-os/.git" ]]; then
+  log_step "Clone upstream LingmoOS live-build-config"
+  local upstream_dir="${PROJECT_ROOT}/upstream/live-build-config"
+  if [[ -d "${upstream_dir}/.git" ]]; then
     log_info "Upstream sudah ada, update..."
-    git -C "${PROJECT_ROOT}/upstream/elementary-os" fetch origin
-  else
+    git -C "${upstream_dir}" fetch origin
+  elif [[ -x "${PROJECT_ROOT}/scripts/clone-upstream.sh" ]]; then
     "${PROJECT_ROOT}/scripts/clone-upstream.sh"
+  else
+    log_info "Will be cloned by build.sh on first run"
   fi
 }
 

@@ -120,7 +120,7 @@ Usage:
 
 Options:
   --dry-run         Tampilkan yang akan dihapus, tidak hapus.
-  --upstream        Hapus folder upstream (clone elementary-os).
+  --upstream        Hapus folder upstream (clone live-build-config).
   --cache           Hapus folder cache.
   --logs            Hapus folder logs.
   --artifacts       Hapus folder artifacts.
