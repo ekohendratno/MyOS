@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  mixos icon (small variant) — placeholder
+  Ukuran: 128x128 untuk app icon.
+  Format: SVG dengan padding dan rounded corner.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="mixosIcon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a84ff"/>
+      <stop offset="50%" stop-color="#5856d6"/>
+      <stop offset="100%" stop-color="#af52de"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect x="0" y="0" width="128" height="128" rx="28" ry="28" fill="url(#mixosIcon)"/>
+
+  <!-- Simplified M -->
+  <path d="M 30 35 L 30 95 L 40 95 L 40 55 L 58 87 L 70 87 L 88 55 L 88 95 L 98 95 L 98 35 L 84 35 L 64 73 L 44 35 Z"
+        fill="white"/>
+</svg>

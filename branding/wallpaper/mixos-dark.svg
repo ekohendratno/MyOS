@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  mixos dark wallpaper (deep night) — placeholder
+  Tema: lebih gelap dari default, untuk preferensi dark mode.
+  Lisensi: MIT (mixos project)
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 5120 2880" width="5120" height="2880" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="darkGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#000000"/>
+      <stop offset="50%" stop-color="#0a0a1a"/>
+      <stop offset="100%" stop-color="#1a1a3e"/>
+    </linearGradient>
+
+    <radialGradient id="nebula1" cx="30%" cy="40%" r="40%">
+      <stop offset="0%" stop-color="#5856d6" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#5856d6" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="nebula2" cx="70%" cy="60%" r="35%">
+      <stop offset="0%" stop-color="#af52de" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#af52de" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="5120" height="2880" fill="url(#darkGrad)"/>
+
+  <!-- Nebula clouds -->
+  <rect width="5120" height="2880" fill="url(#nebula1)"/>
+  <rect width="5120" height="2880" fill="url(#nebula2)"/>
+
+  <!-- Bintang -->
+  <g fill="#ffffff">
+    <circle cx="200" cy="200" r="1.5" opacity="0.7"/>
+    <circle cx="600" cy="400" r="2" opacity="0.9"/>
+    <circle cx="1100" cy="180" r="1" opacity="0.5"/>
+    <circle cx="1500" cy="350" r="1.8" opacity="0.8"/>
+    <circle cx="1900" cy="220" r="1.2" opacity="0.6"/>
+    <circle cx="2400" cy="450" r="2.2" opacity="0.9"/>
+    <circle cx="2800" cy="280" r="1.5" opacity="0.7"/>
+    <circle cx="3200" cy="380" r="1" opacity="0.5"/>
+    <circle cx="3700" cy="200" r="1.6" opacity="0.7"/>
+    <circle cx="4100" cy="450" r="2" opacity="0.9"/>
+    <circle cx="4500" cy="280" r="1.3" opacity="0.6"/>
+    <circle cx="4900" cy="400" r="1.8" opacity="0.8"/>
+    <circle cx="350" cy="700" r="1.4" opacity="0.7"/>
+    <circle cx="950" cy="900" r="1.8" opacity="0.9"/>
+    <circle cx="1700" cy="800" r="1.2" opacity="0.6"/>
+    <circle cx="2400" cy="950" r="1.6" opacity="0.8"/>
+    <circle cx="3200" cy="850" r="1.4" opacity="0.7"/>
+    <circle cx="4100" cy="1000" r="1.8" opacity="0.9"/>
+    <circle cx="4800" cy="750" r="1.2" opacity="0.6"/>
+  </g>
+
+  <!-- Bright "north star" -->
+  <circle cx="4200" cy="600" r="3" fill="#ffffff"/>
+  <circle cx="4200" cy="600" r="6" fill="#ffffff" opacity="0.3"/>
+  <circle cx="4200" cy="600" r="12" fill="#ffffff" opacity="0.15"/>
+
+  <text x="2560" y="2780"
+        font-family="Inter, Cantarell, sans-serif"
+        font-size="42"
+        font-weight="300"
+        fill="#ffffff"
+        opacity="0.2"
+        text-anchor="middle"
+        letter-spacing="6">MIXOS</text>
+</svg>

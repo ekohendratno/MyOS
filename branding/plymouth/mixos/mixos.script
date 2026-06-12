@@ -1,0 +1,68 @@
+/*
+ * mixos.script — Plymouth theme script
+ *
+ * Tema: spinner dengan logo mixos di tengah.
+ * Background: gradient gelap.
+ * Animasi: logo fade-in + spinner berputar.
+ *
+ * Lisensi: MIT (mixos project)
+ * Berdasarkan pola Plymouth theme script standar.
+ */
+
+// === Window size detection ===
+Window.GetSize(0, 0, 0, screen_w, screen_h);
+
+/* Background gradient */
+bg_color_top = Window.WallpaperImage(0, 0, screen_w, screen_h, "background.png");
+if (bg_color_top) {
+  bg_sprite = Sprite(bg_color_top);
+  bg_sprite.SetPosition(0, 0, 0);
+}
+
+/* Logo image */
+logo_image = Image("logo.png");
+logo_sprite = Sprite(logo_image);
+logo_sprite.SetPosition((screen_w - logo_image.GetWidth()) / 2,
+                        (screen_h - logo_image.GetHeight()) / 2 - 40,
+                        1);
+
+/* Spinner — pakai built-in spinner dengan customization */
+spinner_image = Image("spinner.png");
+spinner_sprite = Sprite(spinner_image);
+spinner_sprite.SetPosition((screen_w - spinner_image.GetWidth()) / 2,
+                           (screen_h / 2) + 60,
+                           1);
+
+/* Progress dots (text) */
+progress_text = Sprite();
+progress_text.SetPosition((screen_w / 2) - 20, (screen_h / 2) + 140, 1);
+progress_text.font = "Inter Regular 12";
+progress_text.color = {1.0, 1.0, 1.0, 0.6};
+
+/* Animation: rotate spinner setiap 16 ms ~ 60 fps */
+fun rotate_callback() {
+  spinner_sprite.Rotate(0, 0, 1, 6);  /* 6 derajat per frame */
+}
+
+Plymouth.SetRefreshFunction(rotate_callback);
+
+/* Progress callback */
+fun progress_callback(duration, progress) {
+  /* Display progress as percentage below spinner */
+  /* progress = 0.0 to 1.0 */
+  /* Intentionally simple — Plymouth doesn't easily support text update */
+}
+
+Plymouth.SetBootProgressFunction(progress_callback);
+
+/* Quit callback */
+fun quit_callback() {
+  logo_sprite.SetOpacity(1.0);
+  /* Fade out animation could be added */
+}
+
+Plymouth.SetQuitFunction(quit_callback);
+
+/* Note: Plymouth "script" plugin is limited.
+   Untuk animasi lebih kaya, gunakan "two-step" plugin atau
+   rekam video MP4 dan pakai "fade-throbber" atau "spinner" plugin. */

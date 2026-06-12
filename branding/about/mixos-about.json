@@ -1,0 +1,58 @@
+{
+  "name": "mixos",
+  "version": "0.1.0",
+  "codename": "horizon",
+  "version_id": "0.1",
+  "pretty_version": "0.1 (Horizon)",
+  "build_date": "",
+  "build_branch": "",
+
+  "tagline": "macOS-inspired Linux Desktop",
+  "short_description": "A custom Linux desktop built on elementary OS and the Pantheon desktop environment.",
+
+  "long_description": [
+    "mixos is a custom Linux distribution based on elementary OS 8.1.x and the Pantheon desktop environment.",
+    "It aims to deliver a clean, calm, and consistent desktop experience inspired by the visual language of macOS, while remaining fully open-source and based on free software.",
+    "mixos is not affiliated with, endorsed by, or derived from Apple Inc. or elementary, Inc."
+  ],
+
+  "vendor": {
+    "name": "mixos project",
+    "url": "https://github.com/$(whoami)/mixos"
+  },
+
+  "links": {
+    "homepage": "https://github.com/$(whoami)/mixos",
+    "documentation": "https://github.com/$(whoami)/mixos/blob/main/docs/",
+    "issues": "https://github.com/$(whoami)/mixos/issues",
+    "source": "https://github.com/$(whoami)/mixos",
+    "license": "https://github.com/$(whoami)/mixos/blob/main/licenses/"
+  },
+
+  "credits": {
+    "based_on": "elementary OS 8.1.x (https://elementary.io)",
+    "uses_components_from": [
+      "Pantheon desktop (gala, wingpanel, plank)",
+      "Files (pantheon-files)",
+      "Switchboard",
+      "Granite",
+      "Debian (debian.org)",
+      "GNOME Project (gnome.org)"
+    ],
+    "thanks_to": "The elementary, GNOME, and Debian communities for their open-source contributions."
+  },
+
+  "licenses": {
+    "mixos_artwork": "MIT",
+    "mixos_code": "GPL-3.0 (matches upstream components)",
+    "upstream": "See licenses/THIRD_PARTY_LICENSES.txt"
+  },
+
+  "system_requirements": {
+    "architecture": "amd64 (x86_64)",
+    "minimum_ram_mb": 4096,
+    "recommended_ram_mb": 8192,
+    "minimum_disk_gb": 25,
+    "recommended_disk_gb": 50
+  }
+}

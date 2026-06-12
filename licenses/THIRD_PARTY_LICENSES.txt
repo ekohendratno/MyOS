@@ -1,0 +1,43 @@
+# licenses/THIRD_PARTY_LICENSES.txt
+
+> File ini WAJIB disertakan dalam ISO mixos dan distribusi.
+> Akan diisi penuh saat aset-aset open-source benar-benar dipakai.
+> 
+> Sampai isi tersedia, file ini adalah placeholder.
+
+================================================================================
+MIXOS — THIRD PARTY LICENSES
+================================================================================
+
+mixos adalah custom build berbasis elementary OS 8.1.x dan komponen
+open-source. Distribusi mixos harus menyertakan file ini.
+
+== Komponen Utama dan Lisensi ==
+
+elementary OS build system     : MIT License
+gala (window manager)          : GNU GPL-3.0
+wingpanel (top panel)          : GNU GPL-3.0
+plank (dock)                   : GNU GPL-3.0
+pantheon-files                 : GNU GPL-3.0
+switchboard (system settings)  : GNU GPL-3.0
+granite (stylesheet)           : GNU LGPL-3.0
+pantheon-greeter               : GNU GPL-3.0
+io.elementary.installer        : GNU GPL-3.0
+Debian base                    : Berbagai (lihat debian.org)
+live-build                     : GNU GPL-3.0
+
+== Aset Open-Source yang Digunakan ==
+
+(akan diisi penuh setelah aset benar-benar dipakai)
+
+== Pernyataan ==
+
+mixos bukan produk dari elementary, Inc.
+mixos bukan produk dari Apple Inc.
+mixos didistribusikan "as is" tanpa jaminan apa pun.
+
+== Atribusi ==
+
+Lihat branding/ATTRIBUTION.md untuk daftar lengkap aset dan creator-nya.
+
+================================================================================

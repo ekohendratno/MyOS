@@ -1,0 +1,40 @@
+# .gitignore untuk mixos
+
+# Build output
+builds/
+upstream/
+cache/
+logs/
+artifacts/
+
+# Temporary
+*.tmp
+*.swp
+*.bak
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.iml
+
+# Build artifacts
+*.iso
+*.img
+*.qcow2
+*.squashfs
+
+# Sensitive
+*.gpg
+*.key
+*.asc
+secrets/
+
+# Local config override
+config/local.conf
+config/secrets.conf

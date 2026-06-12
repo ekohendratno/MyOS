@@ -1,0 +1,88 @@
+# remove-packages.list — Paket yang dihapus dari mixos
+# Paket-paket di sini akan di-remove saat build untuk membersihkan branding
+# proprietary, paket tidak relevan, atau paket yang bertentangan dengan mixos.
+# Baris dimulai dengan # adalah komentar.
+
+# === Branding elementary OS (untuk di-replace dengan mixos) ===
+elementary-icon-theme
+elementary-theme
+elementary-default-settings
+elementary-os-pantheon
+elementary-wallpapers
+io.elementary.granite
+io.elementary.photos
+io.elementary.music
+io.elementary.videos
+io.elementary.mail
+io.elementary.installer
+pantheon-files
+pantheon-terminal
+pantheon-calendar
+pantheon-mail
+pantheon-photos
+pantheon-music
+pantheon-videos
+pantheon-shortcuts
+pantheon-calculator
+switchboard
+switchboard-plug-about
+switchboard-plug-applications
+switchboard-plug-bluetooth
+switchboard-plug-datetime
+switchboard-plug-display
+switchboard-plug-keyboard
+switchboard-plug-mouse
+switchboard-plug-network
+switchboard-plug-notifications
+switchboard-plug-onlineaccounts
+switchboard-plug-pantheon-shell
+switchboard-plug-power
+switchboard-plug-printers
+switchboard-plug-security-privacy
+switchboard-plug-sound
+switchboard-plug-useraccounts
+switchboard-plug-wacom
+
+# === Catatan Penting ===
+# Paket di atas JANGAN dihapus semua sekaligus. Paket-paket ini
+# dependency-nya kompleks. Strategi yang lebih aman adalah:
+# 1. TIDAK menghapus paket upstream elementary
+# 2. Cukup override branding (icon, wallpaper, theme) dengan aset mixos
+# 3. Paket upstream tetap terinstall, hanya file branding yang diganti
+#
+# Daftar ini hanya referential. Hook 002-remove-packages.sh akan
+# memfilter paket yang aman untuk di-remove.
+
+# === Paket yang BOLEH di-remove karena tidak relevan ===
+epiphany-browser        # elementary-only app, mixos pakai firefox
+geary                   # elementary-only, mixos pakai evolution (opsional)
+midori-granite
+sequeler                # elementary-only DB client, opsional
+scratch-text-editor     # diganti gnome-text-editor
+
+# === Snap (jika terinstall dan ENABLE_SNAPD=false) ===
+snapd
+snap-confine
+snapd-xdg-open
+
+# === Paket games default (opsional remove) ===
+gnome-mines
+gnome-sudoku
+gnome-mahjongg
+gnome-2048
+aisleriot
+five-or-more
+four-in-a-row
+gnome-robots
+gnome-tetravex
+gnotski
+gtali
+iagno
+lightsoff
+swell-foop
+tali
+
+# === Aksesibilitas (JANGAN remove, penting) ===
+# onboard
+# orca
+# gnome-accessibility-themes

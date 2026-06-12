@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=mixos
+Description=macOS-inspired Plymouth theme for mixos
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/mixos
+ScriptFile=/usr/share/plymouth/themes/mixos/mixos.script

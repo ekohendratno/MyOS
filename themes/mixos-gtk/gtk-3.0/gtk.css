@@ -1,0 +1,199 @@
+/* ===========================================================================
+ * mixos-gtk — GTK3 CSS Override
+ * ===========================================================================
+ * Tema: dark mode, compact padding, macOS-inspired color scheme.
+ * Override theme default Granite/elementary.
+ *
+ * Lisensi: MIT (mixos project)
+ * =========================================================================== */
+
+@import url("resource:///org/gnome/gtk/stylesheet/gtk.css");
+@import url("resource:///org/elementary/gtk/stylesheet/gtk.css");
+
+/* === Warna Dasar === */
+@define-color theme_bg_color #1e1e1e;
+@define-color theme_fg_color #f5f5f5;
+@define-color theme_base_color #252525;
+@define-color theme_text_color #f5f5f5;
+@define-color theme_selected_bg_color #0a84ff;
+@define-color theme_selected_fg_color #ffffff;
+@define-color theme_unfocused_bg_color #1a1a1a;
+@define-color theme_unfocused_fg_color #a0a0a0;
+
+/* === Sidebar === */
+@define-color sidebar_bg_color #2a2a2a;
+@define-color sidebar_fg_color #e0e0e0;
+@define-color sidebar_border_color #333333;
+
+/* === Titlebar === */
+@define-color titlebar_bg_color #2a2a2a;
+@define-color titlebar_fg_color #f5f5f5;
+@define-color titlebar_border_color #333333;
+@define-color titlebar_backdrop_color #252525;
+
+/* === Buttons === */
+@define-color button_bg_color #353535;
+@define-color button_fg_color #f5f5f5;
+@define-color button_border_color #404040;
+@define-color button_hover_bg_color #404040;
+@define-color button_active_bg_color #2a2a2a;
+
+/* === Entry === */
+@define-color entry_bg_color #1a1a1a;
+@define-color entry_fg_color #f5f5f5;
+@define-color entry_border_color #333333;
+
+/* === Accent === */
+@define-color accent_color #0a84ff;
+@define-color success_color #30d158;
+@define-color warning_color #ff9f0a;
+@define-color error_color #ff453a;
+
+/* === Compact Layout === */
+window.csd,
+window.titlebar {
+  padding: 0;
+  min-height: 28px;
+}
+
+.titlebar,
+headerbar {
+  min-height: 28px;
+  padding: 0 6px;
+  background: @titlebar_bg_color;
+  color: @titlebar_fg_color;
+  border: none;
+  border-bottom: 1px solid @titlebar_border_color;
+}
+
+.titlebar .title,
+headerbar .title {
+  font-size: 10pt;
+  font-weight: 600;
+  padding: 0;
+}
+
+.titlebar button.titlebutton,
+headerbar button.titlebutton {
+  min-width: 12px;
+  min-height: 12px;
+  padding: 0;
+  margin: 0 2px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+}
+
+/* macOS-style window controls */
+.titlebar button.titlebutton:nth-child(1) {
+  background: #ff5f57;
+}
+.titlebar button.titlebutton:nth-child(2) {
+  background: #febc2e;
+}
+.titlebar button.titlebutton:nth-child(3) {
+  background: #28c840;
+}
+
+.titlebar button.titlebutton:hover {
+  opacity: 0.85;
+}
+
+.titlebar button.titlebutton:active {
+  opacity: 1.0;
+}
+
+/* === Paned (Sidebar) === */
+paned.titlebar,
+paned.sidebar {
+  background: @sidebar_bg_color;
+  border: none;
+}
+
+paned.titlebar .sidebar,
+paned.sidebar {
+  background: @sidebar_bg_color;
+  color: @sidebar_fg_color;
+  border: none;
+  border-right: 1px solid @sidebar_border_color;
+}
+
+/* === Toolbar === */
+toolbar {
+  min-height: 28px;
+  padding: 0 4px;
+  background: @theme_bg_color;
+  border: none;
+}
+
+toolbar button {
+  min-height: 24px;
+  padding: 0 6px;
+}
+
+/* === Menu === */
+menubar {
+  min-height: 22px;
+  padding: 0 4px;
+  background: @titlebar_bg_color;
+  color: @titlebar_fg_color;
+  border: none;
+}
+
+menubar > menuitem {
+  padding: 0 8px;
+  font-size: 9.5pt;
+}
+
+/* === Scrollbar === */
+scrollbar {
+  min-width: 6px;
+}
+
+scrollbar slider {
+  background: #555555;
+  border: none;
+  border-radius: 3px;
+  min-width: 6px;
+}
+
+/* === List === */
+list,
+treeview {
+  background: @theme_bg_color;
+  color: @theme_fg_color;
+  border: none;
+}
+
+row {
+  padding: 3px 6px;
+}
+
+/* === Status Bar === */
+statusbar {
+  min-height: 22px;
+  padding: 0 6px;
+  background: @theme_bg_color;
+  border: none;
+  border-top: 1px solid @theme_base_color;
+}
+
+/* === Scale === */
+scale {
+  min-height: 16px;
+}
+
+scale.slider {
+  min-width: 12px;
+  min-height: 12px;
+}
+
+/* === Dialog === */
+dialog.action-area {
+  padding: 6px;
+  border-top: 1px solid @theme_base_color;
+}
+
+dialog.action-area button {
+  padding: 4px 12px;
+}

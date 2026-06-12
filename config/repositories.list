@@ -1,0 +1,29 @@
+# repositories.list — Repositori paket tambahan untuk mixos
+# Format: satu baris per repositori. Baris dimulai dengan # adalah komentar.
+# Format: TYPE|URI|SUITE|COMPONENTS|DESCRIPTION
+
+# === Debian Standar ===
+deb|http://deb.debian.org/debian|bookworm|main contrib non-free non-free-firmware|Paket Debian main
+deb|http://deb.debian.org/debian|bookworm-updates|main contrib non-free non-free-firmware|Debian updates
+deb|http://security.debian.org/debian-security|bookworm-security|main contrib non-free non-free-firmware|Debian security
+deb|http://deb.debian.org/debian|bookworm-backports|main contrib non-free non-free-firmware|Debian backports
+
+# === elementary OS ===
+deb|https://packages.elementary.io/appcenter|juno|main|elementary appcenter
+deb|http://ppa.launchpad.net/elementary-os/stable/ubuntu|jammy|main|elementary OS stable PPA
+deb|http://ppa.launchpad.net/elementary-os/os-patches/ubuntu|jammy|main|elementary OS patches PPA
+
+# === Komunitas Ubuntu (untuk jammy base) ===
+deb|http://archive.ubuntu.com/ubuntu|jammy|main restricted universe multiverse|Ubuntu main
+deb|http://archive.ubuntu.com/ubuntu|jammy-updates|main restricted universe multiverse|Ubuntu updates
+deb|http://archive.ubuntu.com/ubuntu|jammy-security|main restricted universe multiverse|Ubuntu security
+deb|http://archive.ubuntu.com/ubuntu|jammy-backports|main restricted universe multiverse|Ubuntu backports
+
+# === Flatpak (Flathub) ===
+# Flatpak tidak pakai format repo Debian. Di-handle terpisah di hooks.
+# lihat ENABLE_FLATPAK di config/mixos.conf
+
+# === Catatan ===
+# Repositori di atas adalah placeholder. elementary OS 8.x berbasis
+# Ubuntu 22.04 LTS (jammy) di upstream build system. Sesuaikan
+# dengan base distro yang dipakai saat build aktual.

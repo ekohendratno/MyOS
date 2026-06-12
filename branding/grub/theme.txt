@@ -1,0 +1,79 @@
+/*
+ * mixos GRUB theme
+ *
+ * File: theme.txt
+ * Lokasi install: /boot/grub/themes/mixos/
+ *
+ * Format GRUB theme standar (GNU GRUB 2.06+).
+ * Lisensi: MIT (mixos project)
+ * Aset gambar: open-source atau buatan sendiri.
+ */
+
++++++++++++++++++++++++++++++++++++++++
+desktop-image: "background.png"
+desktop-color: "#0a0e27"
++-------------------------------------
++ top status bar (kosong, GRUB default)
++-------------------------------------
+
+title-text: "mixos"
+title-font: "Inter Regular 16"
+title-color: "#ffffff"
+
++-------------------------------------
++ boot menu
++-------------------------------------
++ boot_menu {
+  left = 20%
+  top = 30%
+  width = 60%
+  height = 40%
+  item_font = "Inter Regular 14"
+  item_color = "#cccccc"
+  item_height = 30
+  item_padding = 10
+  item_spacing = 5
+  selected_item_font = "Inter Semibold 14"
+  selected_item_color = "#ffffff"
+  selected_item_pixmap_style = "selected_*.png"
+  icon_height = 24
+  icon_width = 24
+  scrollbar = true
+  scrollbar_width = 8
+  scrollbar_thumb = "scrollbar_thumb.png"
+ }
+
++-------------------------------------
++ progress bar
++-------------------------------------
++ progress_bar {
+  id = "__timeout__"
+  left = 20%
+  top = 80%
+  width = 60%
+  height = 4
+  fg_color = "#0a84ff"
+  bg_color = "#333333"
+  text = "@TIMEOUT_NOTIFICATION_LONG@"
+  text_color = "#ffffff"
+  font = "Inter Regular 10"
+ }
+
++-------------------------------------
++ terminal box (untuk advanced)
++-------------------------------------
++ terminal {
+  left = 0
+  top = 0
+  width = 100%
+  height = 100%
+  fg_color = "#ffffff"
+  bg_color = "#000000"
+  font = "Hack 12"
+  text = ""
+  border_color = "#0a84ff"
+ }
+
++-------------------------------------
++ file dihentikan di sini
++-------------------------------------

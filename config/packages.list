@@ -1,0 +1,167 @@
+# packages.list — Paket tambahan yang diinstall di mixos
+# Format: satu paket per baris. Baris dimulai dengan # adalah komentar.
+# Paket-paket di sini adalah TAMBAHAN dari paket bawaan elementary OS.
+# Paket proprietary TIDAK BOLEH masuk tanpa catatan lisensi di LICENSE_NOTES.
+
+# === Base Tools ===
+curl
+wget
+git
+git-lfs
+openssh-client
+rsync
+unzip
+p7zip-full
+p7zip-rar
+unrar
+zip
+nano
+vim-tiny
+htop
+neofetch
+tree
+less
+file
+bash-completion
+command-not-found
+
+# === Theme Tools ===
+gtk-3-examples
+sassc
+libglib2.0-dev-bin
+
+# === Build Tools (hanya untuk VM build, di-strip dari ISO final) ===
+# live-build
+# debootstrap
+# xorriso
+# isolinux
+# syslinux-common
+# grub-pc-bin
+# grub-efi-amd64-bin
+# grub-efi-ia32-bin
+# grub-common
+# mtools
+
+# === Development Tools (opsional, hanya jika ENABLE_DEV_TOOLS=true) ===
+# build-essential
+# gcc
+# g++
+# make
+# cmake
+# pkg-config
+# python3
+# python3-pip
+# nodejs
+# npm
+# default-jdk
+
+# === Multimedia ===
+ffmpeg
+imagemagick
+gimp
+eog
+ristretto
+audacious
+vlc
+celluloid
+rhythmbox
+sound-juicer
+brasero
+libreoffice
+libreoffice-gtk4
+
+# === Browser ===
+firefox
+firefox-locale-en
+firefox-locale-id
+
+# === Office ===
+libreoffice-core
+libreoffice-common
+libreoffice-gtk4
+libreoffice-style-elementary
+libreoffice-impress
+libreoffice-calc
+libreoffice-writer
+libreoffice-draw
+libreoffice-math
+libreoffice-base-core
+libreoffice-gnome
+
+# === Archive Tools ===
+file-roller
+engrampa
+p7zip-full
+p7zip-rar
+unrar-free
+unzip
+zip
+
+# === Network Tools ===
+network-manager
+network-manager-gnome
+wpasupplicant
+wireless-tools
+bluetooth
+bluez
+bluez-tools
+pulseaudio-module-bluetooth
+transmission-gtk
+filezilla
+curl
+wget
+mtr-tiny
+nmap
+openssh-server
+openssh-client
+
+# === Fonts (open-source only) ===
+fonts-inter
+fonts-cantarell
+fonts-dejavu-core
+fonts-dejavu-extra
+fonts-liberation
+fonts-liberation2
+fonts-noto-core
+fonts-noto-cjk
+fonts-roboto
+fonts-hack
+fonts-firacode
+fonts-jetbrains-mono
+fonts-droid-fallback
+fonts-symbola
+fonts-powerline
+
+# === Utilities ===
+gnome-calculator
+gnome-calendar
+gnome-characters
+gnome-clocks
+gnome-connections
+gnome-console
+gnome-disk-utility
+gnome-font-viewer
+gnome-logs
+gnome-screenshot
+gnome-system-monitor
+gnome-text-editor
+gnome-weather
+gthumb
+baobab
+evince
+seahorse
+gufw
+dconf-editor
+dconf-cli
+gnome-tweaks
+gparted
+usb-creator-gtk
+
+# === mixos-specific (DISABLED — placeholder packages, not yet available) ===
+# mixos-branding
+# mixos-gtk-theme
+# mixos-icon-theme
+# mixos-cursor-theme
+# mixos-plank-theme
+# mixos-plymouth-theme
+# mixos-grub-theme

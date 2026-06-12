@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  mixos logo (text variant) — placeholder
+  Untuk splash screen, About dialog, header.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 80" width="400" height="80">
+  <defs>
+    <linearGradient id="mixosTextGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0a84ff"/>
+      <stop offset="50%" stop-color="#5856d6"/>
+      <stop offset="100%" stop-color="#af52de"/>
+    </linearGradient>
+  </defs>
+
+  <text x="20" y="56"
+        font-family="Inter, Cantarell, sans-serif"
+        font-size="48"
+        font-weight="700"
+        fill="url(#mixosTextGrad)"
+        letter-spacing="-1">mixos</text>
+
+  <text x="200" y="56"
+        font-family="Inter, Cantarell, sans-serif"
+        font-size="16"
+        font-weight="400"
+        fill="#888888">macOS-inspired Linux</text>
+</svg>

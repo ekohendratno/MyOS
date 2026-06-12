@@ -1,0 +1,3 @@
+# Placeholder untuk patch gala
+# Patch aktual akan dibuat pada Tahap 4+ (jika ENABLE_PANTHEON_PATCHES=true).
+# Lihat hooks/008-patch-titlebar-size.sh untuk detail patch yang direncanakan.
