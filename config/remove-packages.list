@@ -14,7 +14,6 @@ io.elementary.photos
 io.elementary.music
 io.elementary.videos
 io.elementary.mail
-io.elementary.installer
 pantheon-files
 pantheon-terminal
 pantheon-calendar
@@ -24,7 +23,6 @@ pantheon-music
 pantheon-videos
 pantheon-shortcuts
 pantheon-calculator
-switchboard
 switchboard-plug-about
 switchboard-plug-applications
 switchboard-plug-bluetooth

@@ -64,11 +64,12 @@ KeepOnScreen=true
 LockItems=false
 Monitor=""
 Offset=0
-Position=4                        # 0=Left, 1=Right, 2=Top, 3=Bottom
+Position=3                        # 0=Left, 1=Right, 2=Top, 3=Bottom
 PressureReveal=false
 RevealDelay=200
 RevealDuration=300
 ShowDockItem=false
+ShowDockItem=true
 ShowOnlyMonitor=""
 ShowProgressBar=true
 ShowStatus=true
@@ -83,6 +84,48 @@ UseSticky=false
 WindowWhitelist=':::GtkWindow'
 ZoomEnabled=true
 ZoomFactor=1.2
+EOF
+
+mkdir -p /etc/skel/.config/plank/dock1/launchers
+cat > /etc/skel/.config/plank/dock1/launchers/files.desktop <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=Files
+Exec=lingmo-filemanager
+Icon=system-file-manager
+NoDisplay=true
+Terminal=false
+StartupNotify=true
+EOF
+cat > /etc/skel/.config/plank/dock1/launchers/terminal.desktop <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=Terminal
+Exec=konsole
+Icon=utilities-terminal
+NoDisplay=true
+Terminal=false
+StartupNotify=true
+EOF
+cat > /etc/skel/.config/plank/dock1/launchers/browser.desktop <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=Browser
+Exec=chromium
+Icon=web-browser
+NoDisplay=true
+Terminal=false
+StartupNotify=true
+EOF
+cat > /etc/skel/.config/plank/dock1/launchers/settings.desktop <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=Settings
+Exec=lingmo-settings
+Icon=settings-config
+NoDisplay=true
+Terminal=false
+StartupNotify=true
 EOF
 
 # === system (host awal) ===

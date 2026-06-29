@@ -25,7 +25,7 @@ log_step()  { printf "%b==>%b %b%s%b\n"        "${C_GREEN}" "${C_RESET}" "${C_BO
 
 print_help() {
   cat <<'EOF'
-build.sh â€” Build ISO mixos (LingmoOS base)
+build.sh — Build ISO mixos (LingmoOS base)
 
 Usage:  ./build.sh [options]
 
@@ -150,6 +150,7 @@ setup_config() {
     "${work_dir}/lingmo-config/common/bootloaders/grub-pc/grub.cfg" 2>/dev/null || true
 
   # Fix archive files in lingmo-config (source config, not just config/)
+  # The auto/config script recopies from lingmo-config/common during lb build
   local src_archives_dir="${work_dir}/lingmo-config/common/archives"
   mkdir -p "${src_archives_dir}"
   cat > "${src_archives_dir}/lingmo_pkg.list.chroot" <<ARCHIVE
@@ -167,11 +168,13 @@ ARCHIVE
       log_warn "Cannot create debian-cd symlink for ${DEBIAN_CODENAME} (try: sudo ln -sf sid ${live_build_data}/${DEBIAN_CODENAME})"
   fi
 
-  # Replace auto/config with a clean wrapper
+  # Replace auto/config with a clean wrapper — bypass upstream complexity
+  # (jq dependency, IP-country detection, debian-cd symlink, archive overwrite)
   cat > "${work_dir}/auto/config" << AUTOCFG
 #!/bin/bash
 set -e
 
+# Create debian-cd symlink if needed
 dist="\${LB_DISTRIBUTION:-${DEBIAN_CODENAME}}"
 if [ ! -e /usr/share/live/build/data/debian-cd/"\$dist" ]; then
   if [ -w /usr/share/live/build/data/debian-cd ]; then
@@ -179,6 +182,7 @@ if [ ! -e /usr/share/live/build/data/debian-cd/"\$dist" ]; then
   fi
 fi
 
+# Re-apply our custom archive files (they may get overwritten)
 mkdir -p config/archives
 cat > config/archives/lingmo_pkg.list.chroot << 'ARCHIVE'
 deb [trusted=yes] https://download.opensuse.org/repositories/home:/elysia:/LingmoOS:/CI/Debian_Testing/ ./
@@ -187,18 +191,18 @@ cat > config/archives/lingmo_pkg.list.binary << 'ARCHIVE'
 deb [trusted=yes] https://download.opensuse.org/repositories/home:/elysia:/LingmoOS:/CI/Debian_Testing/ ./
 ARCHIVE
 
+# Always use the configured base distribution
 exec lb config noauto --distribution "${DEBIAN_CODENAME}" "\$@"
 AUTOCFG
   chmod +x "${work_dir}/auto/config"
   log_info "Replaced auto/config with clean wrapper"
 
+  # Hooks — write directly to config/hooks/normal/ with .hook.chroot extension
+  # (live-build only executes files matching *.hook.chroot in config/hooks/normal/)
   local hooks_normal_dir="${work_dir}/config/hooks/normal"
   local hooks_live_dir="${work_dir}/lingmo-config/common/hooks/live"
   mkdir -p "${hooks_normal_dir}" "${hooks_live_dir}"
 
-  # ============================================================
-  # HOOK: 7000-mixos-setup  (FIX: branding, GTK, dconf, dock)
-  # ============================================================
   cat > "${hooks_normal_dir}/7000-mixos-setup.hook.chroot" <<HOOK
 #!/usr/bin/env bash
 set -euo pipefail
@@ -223,31 +227,6 @@ BUG_REPORT_URL="https://github.com/ekohe/mixos/issues/new"
 OSEOF
 
 echo "${PROJECT_DEFAULT_HOSTNAME}" > /etc/hostname
-
-# FIX: Patch branding di lingmo-settings QML agar About menampilkan "mixos"
-for qml_file in \
-  /usr/share/lingmo-settings/qml/AboutPage.qml \
-  /usr/lib/lingmo-settings/qml/AboutPage.qml \
-  /usr/share/lingmo/qml/AboutPage.qml; do
-  if [ -f "\$qml_file" ]; then
-    sed -i \
-      's/Lingmo OS/mixos/g; s/LingmoOS/mixos/g; s/Lingmo Linux/mixos/g' \
-      "\$qml_file" 2>/dev/null || true
-    log_info "Patched branding in \$qml_file"
-  fi
-done
-# Patch semua file QML yang mengandung nama Lingmo OS. Some source-built
-# images may not ship both directories, so collect existing roots first.
-qml_roots=()
-for qml_root in /usr/share/lingmo-settings /usr/lib/lingmo-settings; do
-  [ -d "\$qml_root" ] && qml_roots+=( "\$qml_root" )
-done
-if [ "\${#qml_roots[@]}" -gt 0 ]; then
-  find "\${qml_roots[@]}" -name "*.qml" -type f 2>/dev/null | while read -r f; do
-    grep -l 'Lingmo OS\|LingmoOS' "\$f" 2>/dev/null && \
-      sed -i 's/Lingmo OS/mixos/g; s/LingmoOS/mixos/g' "\$f" || true
-  done
-fi
 
 # === 2. GTK Settings ===
 mkdir -p /etc/gtk-3.0 /etc/gtk-4.0
@@ -279,15 +258,6 @@ system-db:mixos
 PROF
 
 mkdir -p /etc/dconf/db/mixos.d
-
-# Keep MixOS theme names stable, but point them at the shipped Lingmo assets
-# when custom theme packages are not present yet.
-if [ ! -e /usr/share/icons/mixos-icons ] && [ -d /usr/share/icons/lingmo-light ]; then
-  ln -s /usr/share/icons/lingmo-light /usr/share/icons/mixos-icons 2>/dev/null || true
-fi
-if [ ! -e /usr/share/themes/mixos-gtk ] && [ -d /usr/share/themes/lingmo-light ]; then
-  ln -s /usr/share/themes/lingmo-light /usr/share/themes/mixos-gtk 2>/dev/null || true
-fi
 
 # === 4. Desktop interface defaults ===
 log_info "Writing dconf: interface defaults"
@@ -332,7 +302,7 @@ autorun-never=true
 [org/gnome/desktop/privacy]
 report-technical-problems=false
 remember-recent-files=true
-old-files-max-age=30
+old-files-age=30
 recent-files-max-age=30
 DBLOCK
 
@@ -453,7 +423,7 @@ sort-directories-first=true
 thumbnail-size=128
 DBLOCK
 
-# === 11. LingmoOS Settings ===
+# === 11. LingmoOS Settings (fix navigation) ===
 log_info "Writing dconf: lingmo-settings"
 cat > /etc/dconf/db/mixos.d/10-lingmo-settings <<'DBLOCK'
 [com/lingmo/settings]
@@ -463,7 +433,7 @@ window-width=900
 window-height=600
 DBLOCK
 
-# === 12. Environment variables ===
+# === 12. Environment variables (global menu + misc) ===
 log_info "Setting environment variables"
 mkdir -p /etc/environment.d
 cat > /etc/environment.d/90-mixos.conf <<ENVEOF
@@ -472,6 +442,7 @@ GTK_MODULES=gail:atk-bridge
 UBUNTU_MENUPROXY=1
 ENVEOF
 
+# Fallback: also write to /etc/environment
 if ! grep -q 'GTK_OVERLAY_SCROLLING' /etc/environment 2>/dev/null; then
   cat >> /etc/environment <<ENVEOF2
 GTK_OVERLAY_SCROLLING=1
@@ -483,13 +454,16 @@ fi
 log_info "Configuring dock default launchers"
 mkdir -p /etc/skel/.config/lingmo-dock /etc/skel/.config/lingmoos
 
+# Lingmo components use QSettings("lingmoos", "..."). Seed those settings
+# before the live user is created so the theme daemon, desktop, and dock agree
+# on wallpaper + dock geometry at first login.
 cat > /etc/skel/.config/lingmoos/theme.conf <<'THEMECONF'
 [General]
-Wallpaper=/usr/share/backgrounds/mixos/mixos-default.jpg
+Wallpaper=/usr/share/backgrounds/lingmoos/default.jpg
 BackgroundType=0
 BackgroundColor=#2B8ADA
 AccentColor=0
-DarkMode=true
+DarkMode=false
 DarkModeDimsWallpaer=false
 CursorTheme=default
 CursorSize=24
@@ -507,6 +481,8 @@ Style=0
 EdgeMargins=10
 DOCKQCONF
 
+# lingmo-dock reads /etc/lingmo-dock-list.conf. Keep this list limited to
+# desktop files that are actually installed in this ISO.
 cat > /etc/lingmo-dock-list.conf <<'DOCKLIST'
 [lingmo-filemanager]
 DesktopPath=/usr/share/applications/lingmo-filemanager.desktop
@@ -537,6 +513,7 @@ DesktopPath=/usr/share/applications/org.gnome.SystemMonitor.desktop
 Index=6
 DOCKLIST
 
+# Skel fallback for old/user-local dock configs.
 cat > /etc/skel/.config/lingmo-dock/dock.conf <<'DOCKCONF'
 [General]
 PinnedLaunchers=lingmo-filemanager.desktop,chromium.desktop,org.gnome.Console.desktop,lingmo-settings.desktop,lingmo-calculator.desktop,org.gnome.TextEditor.desktop,org.gnome.SystemMonitor.desktop
@@ -547,6 +524,7 @@ AutoHide=true
 HideMode=1
 DOCKCONF
 
+# Also setup Plank config as fallback
 mkdir -p /etc/skel/.config/plank/dock1
 cat > /etc/skel/.config/plank/dock1/settings <<'PLANKCONF'
 [PlankDock]
@@ -555,20 +533,24 @@ AutoHide=true
 HideMode=1
 IconSize=40
 Position=3
-Theme=Default
+Theme=mixos-plank
 ZoomEnabled=true
 ZoomFactor=1.2
 ShowDockItem=false
+ShowDockItem=true
 ItemPinnedGS='[]'
 PLANKCONF
 
+# Create dock launchers directory with .desktop links
 mkdir -p /etc/skel/.config/plank/dock1/launchers
 create_launcher() {
   local target="\$1"
   local name="\$2"
   local icon="\$3"
   local exec="\$4"
-  if [[ -f "\${target}" ]]; then return 0; fi
+  if [[ -f "\${target}" ]]; then
+    return 0
+  fi
   cat > "\${target}" <<LAUNCHER
 [Desktop Entry]
 Type=Application
@@ -581,15 +563,12 @@ StartupNotify=true
 Categories=Utility;
 LAUNCHER
 }
-create_launcher "/etc/skel/.config/plank/dock1/launchers/files.desktop"      "Files"      "system-file-manager"    "lingmo-filemanager"
-create_launcher "/etc/skel/.config/plank/dock1/launchers/terminal.desktop"   "Terminal"   "utilities-terminal"     "kgx"
-create_launcher "/etc/skel/.config/plank/dock1/launchers/settings.desktop"   "Settings"   "settings-config"        "lingmo-settings"
-create_launcher "/etc/skel/.config/plank/dock1/launchers/browser.desktop"    "Browser"    "web-browser"            "chromium"
-create_launcher "/etc/skel/.config/plank/dock1/launchers/calculator.desktop" "Calculator" "accessories-calculator"  "lingmo-calculator"
-
-for app in lingmo-filemanager.desktop chromium.desktop org.gnome.Console.desktop \
-           lingmo-settings.desktop lingmo-calculator.desktop \
-           org.gnome.TextEditor.desktop org.gnome.SystemMonitor.desktop; do
+create_launcher "/etc/skel/.config/plank/dock1/launchers/files.desktop" "Files" "system-file-manager" "lingmo-filemanager"
+create_launcher "/etc/skel/.config/plank/dock1/launchers/terminal.desktop" "Terminal" "utilities-terminal" "kgx"
+create_launcher "/etc/skel/.config/plank/dock1/launchers/settings.desktop" "Settings" "settings-config" "lingmo-settings"
+create_launcher "/etc/skel/.config/plank/dock1/launchers/browser.desktop" "Browser" "web-browser" "chromium"
+create_launcher "/etc/skel/.config/plank/dock1/launchers/calculator.desktop" "Calculator" "accessories-calculator" "gnome-calculator"
+for app in lingmo-filemanager.desktop chromium.desktop org.gnome.Console.desktop lingmo-settings.desktop lingmo-calculator.desktop org.gnome.TextEditor.desktop org.gnome.SystemMonitor.desktop; do
   for searchdir in /usr/share/applications /usr/local/share/applications; do
     if [ -f "\${searchdir}/\${app}" ]; then
       cp "\${searchdir}/\${app}" "/etc/skel/.config/plank/dock1/launchers/"
@@ -604,69 +583,7 @@ mkdir -p /etc/skel/.config/dconf
 mkdir -p /etc/skel/.local/share/applications
 mkdir -p /etc/skel/Desktop
 
-# FIX-D: Ensure dock config AND desktop files are properly in skel
-for app in lingmo-filemanager chromium org.gnome.Console lingmo-settings lingmo-calculator org.gnome.TextEditor org.gnome.SystemMonitor; do
-  for dir in /usr/share/applications /usr/local/share/applications; do
-    if [ -f "\${dir}/\${app}.desktop" ]; then
-      cp "\${dir}/\${app}.desktop" /etc/skel/.config/plank/dock1/launchers/ 2>/dev/null || true
-      break
-    fi
-  done
-done
-
-PINNED=""
-for app in lingmo-filemanager.desktop chromium.desktop org.gnome.Console.desktop \
-           lingmo-settings.desktop lingmo-calculator.desktop org.gnome.TextEditor.desktop; do
-  if [ -f "/usr/share/applications/\${app}" ]; then
-    PINNED="\${PINNED:+\${PINNED},}\${app}"
-  fi
-done
-if [ -n "\${PINNED}" ]; then
-  sed -i "s|^PinnedLaunchers=.*|PinnedLaunchers=\${PINNED}|" \
-    /etc/skel/.config/lingmo-dock/dock.conf 2>/dev/null || true
-  log_info "Updated PinnedLaunchers: \${PINNED}"
-fi
-
-# === 15. FIX: Wallpaper â€” konversi SVG ke JPG agar selalu ada wallpaper ===
-log_info "Preparing wallpaper files"
-mkdir -p /usr/share/backgrounds/mixos /usr/share/backgrounds/lingmoos
-
-# Konversi SVG ke JPG jika ada tool convert (imagemagick)
-if command -v convert >/dev/null 2>&1; then
-  for svg_src in \
-    /usr/share/backgrounds/mixos/mixos-default.svg \
-    /usr/share/backgrounds/mixos/mixos-dark.svg; do
-    if [ -f "\$svg_src" ]; then
-      jpg_dst="\${svg_src%.svg}.jpg"
-      if [ ! -f "\$jpg_dst" ]; then
-        convert -background '#1a1a2e' -flatten -size 1920x1080 "\$svg_src" "\$jpg_dst" 2>/dev/null && \
-          log_info "Converted \$svg_src -> \$jpg_dst" || true
-      fi
-    fi
-  done
-fi
-
-# Buat wallpaper solid fallback jika tidak ada file sama sekali
-if ! ls /usr/share/backgrounds/mixos/*.jpg /usr/share/backgrounds/mixos/*.png \
-        /usr/share/backgrounds/lingmoos/*.jpg 2>/dev/null | grep -q .; then
-  log_warn "No wallpaper image found; creating solid color fallback"
-  if command -v convert >/dev/null 2>&1; then
-    convert -size 1920x1080 xc:'#1a1a2e' /usr/share/backgrounds/mixos/mixos-default.jpg 2>/dev/null || true
-    convert -size 1920x1080 xc:'#0a0a14' /usr/share/backgrounds/mixos/mixos-dark.jpg    2>/dev/null || true
-    ln -sf /usr/share/backgrounds/mixos/mixos-default.jpg \
-           /usr/share/backgrounds/lingmoos/default.jpg 2>/dev/null || true
-    log_info "Created fallback wallpaper (solid #1a1a2e)"
-  fi
-fi
-
-# Symlink agar lingmo-settings-daemon dan xwallpaper bisa menemukan wallpaper
-if [ -f /usr/share/backgrounds/mixos/mixos-default.jpg ] && \
-   [ ! -f /usr/share/backgrounds/lingmoos/default.jpg ]; then
-  ln -sf /usr/share/backgrounds/mixos/mixos-default.jpg \
-         /usr/share/backgrounds/lingmoos/default.jpg 2>/dev/null || true
-fi
-
-# === 16. Compile dconf database ===
+# === 15. Compile dconf database ===
 log_info "Compiling dconf database"
 if command -v dconf >/dev/null 2>&1; then
   dconf update
@@ -679,9 +596,6 @@ log_info "\${HOOK_NAME} selesai"
 HOOK
   chmod +x "${hooks_normal_dir}/7000-mixos-setup.hook.chroot"
 
-  # ============================================================
-  # HOOK: 9500-mixos-cleanup
-  # ============================================================
   cat > "${hooks_normal_dir}/9500-mixos-cleanup.hook.chroot" <<CLN
 #!/usr/bin/env bash
 set -euo pipefail
@@ -718,14 +632,10 @@ CLN
     cp "${PROJECT_ROOT}/branding/wallpaper/mixos-default.svg" "${inc}/usr/share/backgrounds/mixos/"
   [[ -f "${PROJECT_ROOT}/branding/wallpaper/mixos-dark.svg" ]] && \
     cp "${PROJECT_ROOT}/branding/wallpaper/mixos-dark.svg" "${inc}/usr/share/backgrounds/mixos/"
-  # FIX: Salin juga versi JPG jika sudah ada
-  [[ -f "${PROJECT_ROOT}/branding/wallpaper/mixos-default.jpg" ]] && \
-    cp "${PROJECT_ROOT}/branding/wallpaper/mixos-default.jpg" "${inc}/usr/share/backgrounds/mixos/"
-  [[ -f "${PROJECT_ROOT}/branding/wallpaper/mixos-dark.jpg" ]] && \
-    cp "${PROJECT_ROOT}/branding/wallpaper/mixos-dark.jpg" "${inc}/usr/share/backgrounds/mixos/"
   echo "${PROJECT_DEFAULT_HOSTNAME}" > "${inc}/etc/hostname"
 
   # Live session identity and SDDM autologin.
+  # Upstream Lingmo uses lingmo/live; our image uses mixos/live.
   mkdir -p "${inc}/etc/live/config.conf.d" "${inc}/usr/lib/live/config" "${inc}/etc"
   cat > "${inc}/etc/live/config.conf.d/user-setup.conf" <<EOF
 LIVE_HOSTNAME="${PROJECT_DEFAULT_HOSTNAME}"
@@ -733,13 +643,10 @@ LIVE_USERNAME="${PROJECT_DEFAULT_USERNAME}"
 LIVE_USER_FULLNAME="mixos Live User"
 LIVE_USER_DEFAULT_GROUPS="audio cdrom dip floppy video plugdev netdev sudo"
 EOF
-
-  # ============================================================
-  # LIVE CONFIG: 1166-fix-sddm-auto-login + mixos-session (FIXED)
-  # ============================================================
-  cat > "${inc}/usr/lib/live/config/1166-fix-sddm-auto-login" <<'EOF'
+  cat > "${inc}/usr/lib/live/config/1166-fix-sddm-auto-login" <<EOF
 #!/bin/sh
 
+rm -f /etc/sddm.conf
 mkdir -p /usr/share/xsessions /usr/local/bin
 
 cat << 'SESSIONSD' > /usr/share/xsessions/mixos.desktop
@@ -753,8 +660,8 @@ DesktopNames=Lingmo
 SESSIONSD
 
 cat << 'SESSIONEOF' > /usr/local/bin/mixos-session
-#!/usr/bin/env bash
-# mixos-session - fixed desktop session starter
+#!/bin/sh
+set -u
 
 export XDG_CURRENT_DESKTOP=Lingmo
 export XDG_SESSION_DESKTOP=Lingmo
@@ -763,189 +670,140 @@ export QT_QPA_PLATFORM=xcb
 export QT_QPA_PLATFORMTHEME=lingmo
 export QT_PLATFORM_PLUGIN=lingmo
 export QT_AUTO_SCREEN_SCALE_FACTOR=0
-export QT_LOGGING_RULES="${QT_LOGGING_RULES:-qt.qpa.xcb=false}"
+export QT_LOGGING_RULES="\${QT_LOGGING_RULES:-qt.qpa.xcb=false}"
 
-LOG="${HOME:-/tmp}/.mixos-session.log"
-echo "=== mixos-session $(date) ===" > "$LOG"
-echo "USER=$(id), DISPLAY=${DISPLAY:-unset}, DBUS=${DBUS_SESSION_BUS_ADDRESS:-unset}" >> "$LOG"
+LOG="\${HOME:-/tmp}/.mixos-session.log"
+echo "mixos-session started at \$(date)" > "\$LOG"
 
-if [ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ] && ! command -v systemctl >/dev/null 2>&1; then
-  if command -v dbus-launch >/dev/null 2>&1; then
-    eval "$(dbus-launch --sh-syntax --exit-with-session)"
-    echo "[dbus] Started via dbus-launch" >> "$LOG"
-  fi
-fi
-
-mkdir -p "${HOME}/Desktop" \
-         "${HOME}/.config/lingmo-dock" \
-         "${HOME}/.config/lingmoos" \
-         "${HOME}/.config/plank/dock1" \
-         "${HOME}/.local/share/applications"
+mkdir -p "\${HOME}/Desktop" "\${HOME}/.config/lingmo-dock" "\${HOME}/.config/lingmoos" "\${HOME}/.config/plank/dock1"
 
 copy_if_missing() {
-  src="$1"; dst="$2"
-  [ -f "$src" ] && [ ! -f "$dst" ] && { mkdir -p "$(dirname "$dst")"; cp "$src" "$dst" 2>/dev/null; } || true
+  src="\$1"
+  dst="\$2"
+  if [ -f "\$src" ] && [ ! -f "\$dst" ]; then
+    mkdir -p "\$(dirname "\$dst")"
+    cp "\$src" "\$dst" 2>/dev/null || true
+  fi
 }
-copy_if_missing /etc/skel/.config/lingmoos/theme.conf    "${HOME}/.config/lingmoos/theme.conf"
-copy_if_missing /etc/skel/.config/lingmoos/dock.conf     "${HOME}/.config/lingmoos/dock.conf"
-copy_if_missing /etc/skel/.config/lingmo-dock/dock.conf  "${HOME}/.config/lingmo-dock/dock.conf"
-[ -d /etc/skel/.config/plank/dock1 ] && \
-  cp -an /etc/skel/.config/plank/dock1/. "${HOME}/.config/plank/dock1/" 2>/dev/null || true
+
+copy_if_missing /etc/skel/.config/lingmoos/theme.conf "\${HOME}/.config/lingmoos/theme.conf"
+copy_if_missing /etc/skel/.config/lingmoos/dock.conf "\${HOME}/.config/lingmoos/dock.conf"
+copy_if_missing /etc/skel/.config/lingmo-dock/dock.conf "\${HOME}/.config/lingmo-dock/dock.conf"
+if [ -d /etc/skel/.config/plank/dock1 ]; then
+  cp -an /etc/skel/.config/plank/dock1/. "\${HOME}/.config/plank/dock1/" 2>/dev/null || true
+fi
 
 start_if_exists() {
-  cmd="$1"; shift
-  command -v "$cmd" >/dev/null 2>&1 || { echo "[miss] $cmd" >> "$LOG"; return 1; }
-  echo "[start] $cmd $*" >> "$LOG"
-  "$cmd" "$@" >> "$LOG" 2>&1 &
+  cmd="\$1"
+  shift
+  if command -v "\$cmd" >/dev/null 2>&1; then
+    echo "starting \$cmd \$*" >> "\$LOG"
+    "\$cmd" "\$@" >> "\$LOG" 2>&1 &
+    return 0
+  fi
+  echo "missing \$cmd" >> "\$LOG"
+  return 1
 }
 
 keepalive_if_exists() {
-  cmd="$1"; shift
-  command -v "$cmd" >/dev/null 2>&1 || { echo "[miss-keepalive] $cmd" >> "$LOG"; return 1; }
-  (
-    while :; do
-      echo "[keepalive] $cmd $*" >> "$LOG"
-      "$cmd" "$@" >> "$LOG" 2>&1
-      echo "[keepalive] $cmd exited $?, restart in 3s" >> "$LOG"
-      sleep 3
-    done
-  ) &
+  cmd="\$1"
+  shift
+  if command -v "\$cmd" >/dev/null 2>&1; then
+    (
+      while :; do
+        echo "starting \$cmd \$*" >> "\$LOG"
+        "\$cmd" "\$@" >> "\$LOG" 2>&1
+        code="\$?"
+        echo "\$cmd exited with \$code" >> "\$LOG"
+        sleep 2
+      done
+    ) &
+    return 0
+  fi
+  echo "missing \$cmd" >> "\$LOG"
+  return 1
 }
 
 set_wallpaper() {
-  local wp=""
-  for p in \
-    "${HOME}/.config/lingmoos/wallpaper.jpg" \
-    /usr/share/backgrounds/mixos/mixos-default.jpg \
-    /usr/share/backgrounds/mixos/mixos-default.png \
-    /usr/share/backgrounds/lingmoos/default.jpg \
-    /usr/share/backgrounds/lingmoos/wallpaper-0.jpg; do
-    [ -f "$p" ] && { wp="$p"; break; }
-  done
+  wallpaper="/usr/share/backgrounds/lingmoos/default.jpg"
+  [ -f "\$wallpaper" ] || wallpaper="/usr/share/backgrounds/lingmoos/wallpaper-0.jpg"
+  [ -f "\$wallpaper" ] || wallpaper="/usr/share/backgrounds/mixos-default.jpg"
 
-  echo "[wallpaper] Using: ${wp:-none}" >> "$LOG"
-  if [ -n "$wp" ]; then
-    command -v xwallpaper >/dev/null 2>&1 && { xwallpaper --zoom "$wp" 2>/dev/null || xwallpaper --stretch "$wp" 2>/dev/null; return; }
-    command -v feh >/dev/null 2>&1 && { feh --bg-fill "$wp" 2>/dev/null; return; }
+  if [ -f "\$wallpaper" ]; then
+    if command -v xwallpaper >/dev/null 2>&1; then
+      xwallpaper --zoom "\$wallpaper" >> "\$LOG" 2>&1 || true
+    elif command -v feh >/dev/null 2>&1; then
+      feh --bg-fill "\$wallpaper" >> "\$LOG" 2>&1 || true
+    fi
+  else
+    xsetroot -solid '#9bc9ff' >/dev/null 2>&1 || true
   fi
-  command -v xsetroot >/dev/null 2>&1 && xsetroot -solid '#1a1a2e' 2>/dev/null || true
 }
 
-setup_display() {
-  command -v xrandr >/dev/null 2>&1 || return 0
-  local output
-  output=$(xrandr 2>/dev/null | awk '/\bconnected\b/{print $1; exit}')
-  [ -z "$output" ] && return 0
-  local current
-  current=$(xrandr 2>/dev/null | awk '/\*/{print $1; exit}')
-  if [ "${current:-640x480}" = "640x480" ] || [ -z "${current:-}" ]; then
-    for res in 1920x1080 1680x1050 1440x900 1280x800 1024x768; do
-      xrandr --output "$output" --mode "$res" 2>/dev/null && break
-    done
-  fi
-  command -v VBoxClient >/dev/null 2>&1 && {
-    VBoxClient --display >> "$LOG" 2>&1 &
-    VBoxClient --clipboard >> "$LOG" 2>&1 &
-  }
-  command -v spice-vdagentd >/dev/null 2>&1 && \
-    spice-vdagentd >> "$LOG" 2>&1 &
-}
-
-apply_gsettings() {
-  command -v gsettings >/dev/null 2>&1 || return 0
-  local wp=""
-  for p in "${HOME}/.config/lingmoos/wallpaper.jpg" /usr/share/backgrounds/mixos/mixos-default.jpg; do
-    [ -f "$p" ] && { wp="$p"; break; }
-  done
-  gsettings set org.gnome.desktop.interface icon-theme 'mixos-icons' 2>/dev/null || \
-    gsettings set org.gnome.desktop.interface icon-theme 'lingmo-light' 2>/dev/null || true
-  gsettings set org.gnome.desktop.interface gtk-theme 'mixos-gtk' 2>/dev/null || \
-    gsettings set org.gnome.desktop.interface gtk-theme 'lingmo-light' 2>/dev/null || true
-  [ -n "$wp" ] && {
-    gsettings set org.gnome.desktop.background picture-uri "file://$wp" 2>/dev/null || true
-    gsettings set org.gnome.desktop.background picture-uri-dark "file://$wp" 2>/dev/null || true
-  }
-}
-
-setup_display
-
-if [ "${MIXOS_USE_UPSTREAM_SESSION:-0}" = "1" ] && command -v lingmo-session >/dev/null 2>&1; then
-  echo "[session] Trying upstream lingmo-session (MIXOS_USE_UPSTREAM_SESSION=1)" >> "$LOG"
-  apply_gsettings
+fallback_desktop() {
+  echo "starting fallback desktop stack" >> "\$LOG"
+  start_if_exists kwin_x11 --replace
+  sleep 1
   set_wallpaper
-  lingmo-session >> "$LOG" 2>&1
-  exit_code=$?
-  echo "[session] lingmo-session exited with code $exit_code" >> "$LOG"
-  [ $exit_code -eq 0 ] && exit 0
-  echo "[session] lingmo-session crashed, starting fallback desktop" >> "$LOG"
+  start_if_exists lingmo-settings-daemon
+  start_if_exists lingmo-appmotor
+  start_if_exists lingmo-desktop
+  start_if_exists lingmo-dock
+  start_if_exists lingmo-launcher
+  start_if_exists lingmo-statusbar
+  start_if_exists nm-applet
+  if command -v plank >/dev/null 2>&1 && ! pgrep -u "\$(id -u)" -x lingmo-dock >/dev/null 2>&1; then
+    start_if_exists plank
+  fi
+}
+
+if command -v dbus-run-session >/dev/null 2>&1 && [ -z "\${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
+  exec dbus-run-session -- /usr/local/bin/mixos-session
 fi
 
-echo "[session] Starting fallback desktop stack" >> "$LOG"
-keepalive_if_exists kwin_x11 --replace
+if command -v lingmo-session >/dev/null 2>&1; then
+  echo "starting upstream lingmo-session" >> "\$LOG"
+  exec lingmo-session >> "\$LOG" 2>&1
+else
+  echo "missing lingmo-session; falling back" >> "\$LOG"
+fi
+
+fallback_desktop
 sleep 4
-start_if_exists lingmo-settings-daemon
-sleep 1
-apply_gsettings
-set_wallpaper
-start_if_exists lingmo-appmotor
-sleep 1
-start_if_exists lingmo-desktop
-sleep 1
-
-if command -v lingmo-dock >/dev/null 2>&1; then
-  keepalive_if_exists lingmo-dock
-  echo "[session] lingmo-dock keepalive started" >> "$LOG"
-elif command -v plank >/dev/null 2>&1; then
-  keepalive_if_exists plank
-  echo "[session] plank keepalive started" >> "$LOG"
+if pgrep -u "\$(id -u)" -x lingmo-desktop >/dev/null 2>&1 || pgrep -u "\$(id -u)" -x lingmo-dock >/dev/null 2>&1; then
+  echo "desktop components running; skipping fallback terminal" >> "\$LOG"
+elif command -v xterm >/dev/null 2>&1; then
+  xterm -title "MixOS fallback terminal" -geometry 100x28+80+80 >> "\$LOG" 2>&1 &
+elif command -v lingmo-terminal >/dev/null 2>&1; then
+  lingmo-terminal >> "\$LOG" 2>&1 &
+elif command -v kgx >/dev/null 2>&1; then
+  kgx >> "\$LOG" 2>&1 &
 fi
-
-start_if_exists lingmo-launcher
-start_if_exists lingmo-statusbar
-start_if_exists nm-applet --indicator
-sleep 3
-set_wallpaper
-
-(
-  sleep 20
-  while :; do
-    pgrep -x kwin_x11 >/dev/null 2>&1 || {
-      echo "[watchdog] kwin_x11 died, restarting" >> "$LOG"
-      kwin_x11 --replace >> "$LOG" 2>&1 &
-      sleep 5
-    }
-    sleep 10
-  done
-) &
 
 wait
 SESSIONEOF
 chmod +x /usr/local/bin/mixos-session
 
-rm -f /etc/sddm.conf
-mkdir -p /etc/sddm.conf.d
-
-cat << 'AUTOLOGINEOF' > /etc/sddm.conf.d/autologin.conf
-[Autologin]
-User=__MIXOS_LIVE_USER__
-Session=mixos
-Relogin=false
-AUTOLOGINEOF
-
-cat << 'THEMEEOF' > /etc/sddm.conf.d/theme.conf
+cat << 'SDDMEOF' > /etc/sddm.conf
 [Theme]
 Current=lingmo
-THEMEEOF
 
-cat << 'USERSEOF' > /etc/sddm.conf.d/users.conf
 [Users]
+# Default \$PATH for logged in users
+# Don't change this, See issue in
+# https://github.com/orgs/LingmoOS/discussions/25#discussioncomment-11029445
 DefaultPath=/usr/bin:/bin
-USERSEOF
 
-echo "SDDM autologin configured via sddm.conf.d/"
+[Autologin]
+User=${PROJECT_DEFAULT_USERNAME}
+Session=mixos.desktop
+Relogin=false
+HiddenUsers=
+
+SDDMEOF
 EOF
-  sed -i "s/__MIXOS_LIVE_USER__/${PROJECT_DEFAULT_USERNAME}/g" "${inc}/usr/lib/live/config/1166-fix-sddm-auto-login"
   chmod +x "${inc}/usr/lib/live/config/1166-fix-sddm-auto-login"
+
   # Copy ke config/ (LingmoOS pattern)
   cp -rT "${work_dir}/lingmo-config/common" "${work_dir}/config"
   local variant_src="${work_dir}/lingmo-config/variant-default"
@@ -954,27 +812,6 @@ EOF
     log_info "Variant symlink resolved: variant-default -> ${variant_src}"
   fi
   cp -rT "${variant_src}" "${work_dir}/config" 2>/dev/null || true
-
-  # FIX-A: Patch ALL GRUB/SYSLINUX files after lb config copy
-  log_info "FIX-A: Patching GRUB branding in all bootloader files"
-  local boot_dirs=(
-    "${work_dir}/config/bootloaders"
-    "${work_dir}/lingmo-config/common/bootloaders"
-  )
-  local boot_dir
-  for boot_dir in "${boot_dirs[@]}"; do
-    if [[ -d "${boot_dir}" ]]; then
-      find "${boot_dir}" -type f \( -name "*.cfg" -o -name "*.conf" -o -name "*.txt" \) | \
-      while IFS= read -r f; do
-        sed -i \
-          -e 's/Lingmo Linux live menu/mixos live menu/g' \
-          -e 's/Lingmo Linux/mixos/g' \
-          -e 's/LingmoOS/mixos/g' \
-          -e 's/Lingmo OS/mixos/g' \
-          "${f}" 2>/dev/null || true
-      done
-    fi
-  done
 
   # Fix OBS repo URL & bypass GPG v3 rejection
   local archives_dir="${work_dir}/config/archives"
@@ -987,7 +824,7 @@ deb [trusted=yes] https://download.opensuse.org/repositories/home:/elysia:/Lingm
 ARCHIVE
   log_info "Created archive files with correct OBS repo URL"
 
-  # Fix package lists â€” remove packages not available in OBS repo or Debian base
+  # Fix package lists — remove packages not available in OBS repo or Debian base
   for list_file in "${work_dir}"/config/package-lists/*.list.chroot; do
     [[ -f "${list_file}" ]] || continue
     sed -i \
@@ -1033,10 +870,6 @@ sudo
 parted
 xwallpaper
 plank
-imagemagick
-
-# FIX: VM guest support (resolusi otomatis)
-spice-vdagent
 
 # Apps
 chromium
@@ -1044,7 +877,7 @@ chromium-l10n
 LINGMO_SOURCE_LIST
       log_info "Rewrote variant package list for source-built LingmoOS packages"
     else
-      cat > "${variant_pkgs}" <<LINGMO_LIST
+    cat > "${variant_pkgs}" <<LINGMO_LIST
 # LingmoOS packages (available in OBS CI repo)
 libicu76
 liblingmo
@@ -1079,16 +912,12 @@ sudo
 parted
 xwallpaper
 plank
-imagemagick
-
-# FIX: VM guest support (resolusi otomatis)
-spice-vdagent
 
 # Apps
 chromium
 chromium-l10n
 LINGMO_LIST
-      log_info "Rewrote variant package list: lingmo.list.chroot"
+    log_info "Rewrote variant package list: lingmo.list.chroot"
     fi
   fi
 
@@ -1176,9 +1005,10 @@ use_repo_lingmo_settings() {
 
   mkdir -p "${pkgs_dir}"
   if compgen -G "${pkgs_dir}/lingmo-settings*.deb" >/dev/null; then
-    log_info "Keeping source-built lingmo-settings override for patched Settings pages"
+    rm -f "${pkgs_dir}"/lingmo-settings*.deb
+    log_info "Removed local lingmo-settings override; using repo package for version consistency"
   else
-    log_warn "Source-built lingmo-settings not found; repo package will be used"
+    log_info "Using repo-provided lingmo-settings"
   fi
 }
 
@@ -1228,6 +1058,7 @@ install_lingmo_source_pkgs() {
     return 0
   fi
 
+  # Keep local Lingmo source packages as the authoritative desktop stack.
   rm -f "${pkgs_dir}"/lingmo-*.deb \
         "${pkgs_dir}"/liblingmo*.deb \
         "${pkgs_dir}"/lingmoui*.deb \
@@ -1249,7 +1080,7 @@ install_lingmo_source_pkgs() {
   fi
   local required_pkg
   local missing_required=()
-  for required_pkg in lingmo-core appmotor lingmo-desktop lingmo-dock lingmo-launcher lingmo-statusbar lingmo-settings lingmo-systemicons lingmo-wallpapers lingmo-filemanager; do
+  for required_pkg in liblingmo lingmoui appmotor lingmo-desktop lingmo-dock lingmo-launcher lingmo-statusbar lingmo-settings; do
     if ! compgen -G "${pkgs_dir}/${required_pkg}_*.deb" >/dev/null; then
       missing_required+=("${required_pkg}")
     fi
@@ -1308,10 +1139,7 @@ patch_local_lingmo_source_debs() {
     repack_deb_without_dependency "${deb}" "lingmo-kwin-plugins-roundedwindow"
   done < <(find "${pkgs_dir}" -maxdepth 1 -type f -name 'lingmo-kwin-plugins_*.deb' -print0)
 
-  while IFS= read -r -d '' deb; do
-    repack_deb_without_dependency "${deb}" "liblingmo"
-  done < <(find "${pkgs_dir}" -maxdepth 1 -type f \( -name 'lingmo-desktop_*.deb' -o -name 'lingmo-launcher_*.deb' -o -name 'lingmo-settings_*.deb' -o -name 'lingmo-terminal_*.deb' \) -print0)
-
+  # This OBS package targets newer Qt than Debian trixie currently installs.
   rm -f "${pkgs_dir}"/lingmo-kwin-plugins-roundedwindow_*.deb 2>/dev/null || true
 }
 
@@ -1400,6 +1228,7 @@ build_lingmo_settings() {
   }
   trap cleanup_build_chroot EXIT
 
+  # Bersihkan mount lama kalau build sebelumnya sempat gagal.
   cleanup_build_chroot
 
   if ls "${pkgs_dir}"/lingmo-settings*.deb >/dev/null 2>&1; then
@@ -1429,6 +1258,7 @@ build_lingmo_settings() {
     cp /etc/resolv.conf "${build_chroot}/etc/resolv.conf"
   fi
 
+  # Add OBS repo and stub packages to build chroot
   mkdir -p "${build_chroot}/etc/apt/sources.list.d"
   echo "deb [trusted=yes] https://download.opensuse.org/repositories/home:/elysia:/LingmoOS:/CI/Debian_Testing/ ./" \
     > "${build_chroot}/etc/apt/sources.list.d/lingmo-obs.list"
@@ -1437,8 +1267,10 @@ build_lingmo_settings() {
 
   chroot "${build_chroot}" bash -c "
     apt-get update -qq 2>&1 | tail -3 || true
+    # Install stub packages FIRST to satisfy ABI deps
     dpkg -i /tmp/pkgs/*.deb 2>&1 | tail -3 || true
     apt-get install -f -y 2>&1 | tail -3 || true
+    # Now install OBS packages and build deps
     apt-get install -y --no-install-recommends -o DPkg::Options::=--force-confnew \
       liblingmo lingmoui3 libkf6config-dev libkf6networkmanagerqt-dev \
       libkf6modemmanagerqt-dev libkf6bluezqt-dev libkf6kio-dev libkscreen-dev \
@@ -1448,31 +1280,39 @@ build_lingmo_settings() {
       2>&1 | tail -10
   " 2>&1 | tail -5
 
+  # Clone and build lingmo-settings
   if [ ! -d "${build_chroot}/src/lingmo-settings" ]; then
     chroot "${build_chroot}" git clone --depth 1 \
       https://github.com/LingmoOS/lingmo-settings.git /src/lingmo-settings
   fi
 
+  # Install build deps from debian/control
   chroot "${build_chroot}" bash -c "cd /src/lingmo-settings && \
     mk-build-deps -i -t 'apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends -y' debian/control 2>&1 | tail -5" || true
 
+  # Install extra private Qt deps not in debian/control
   chroot "${build_chroot}" apt-get install -y --no-install-recommends \
     qt6-base-private-dev libxcb-errors-dev 2>&1 | tail -3
 
+  # Patch CMakeLists.txt: Qt6GuiPrivate not auto-loaded in Qt 6.10
   if ! grep -q 'find_package(Qt6GuiPrivate' "${build_chroot}/src/lingmo-settings/CMakeLists.txt" 2>/dev/null; then
     sed -i 's/find_package(LingmoLogger REQUIRED)/find_package(LingmoLogger REQUIRED)\nfind_package(Qt6GuiPrivate REQUIRED)/' \
       "${build_chroot}/src/lingmo-settings/CMakeLists.txt"
   fi
+  # Skip a broken translation file that aborts the whole build.
   if ! grep -q 'eo_XX.ts' "${build_chroot}/src/lingmo-settings/CMakeLists.txt" 2>/dev/null; then
     perl -0pi -e 's|file\(GLOB TS_FILES translations/\*\.ts\)\n|file(GLOB TS_FILES translations/*.ts)\nlist(FILTER TS_FILES EXCLUDE REGEX "eo_XX\\.ts\$")\n|' \
       "${build_chroot}/src/lingmo-settings/CMakeLists.txt"
   fi
 
+  # Fix invalid date in debian/changelog (Tue, 46 Jul 2024)
   sed -i 's/Tue, 46 Jul 2024/Tue, 30 Jul 2024/' \
     "${build_chroot}/src/lingmo-settings/debian/changelog"
 
+  # Build
   chroot "${build_chroot}" bash -c "cd /src/lingmo-settings && export MAKEFLAGS='-j$(nproc)' DEB_BUILD_OPTIONS='parallel=$(nproc)' && dpkg-buildpackage -b -uc -us -j$(nproc)"
 
+  # Copy result
   cp "${build_chroot}/src/"lingmo-settings*.deb "${pkgs_dir}/" 2>/dev/null || true
   log_info "lingmo-settings built and placed in config/packages.chroot/"
 
@@ -1521,7 +1361,7 @@ run_build() {
     --iso-volume "MIXOS" \
     --linux-packages "linux-image linux-headers" \
     --memtest none \
-    --bootappend-live "boot=live components noeject autologin" \
+    --bootappend-live "boot=live components noeject" \
     --bootappend-live-failsafe "boot=live components noeject memtest noapic noapm nodma nomce nolapic nomodeset nosmp nosplash vga=normal" \
     --debootstrap-options "--include=apt-transport-https,ca-certificates,openssl" \
     --security false \
@@ -1530,17 +1370,8 @@ run_build() {
     --cache-stages bootstrap \
     -a "${BASE_ARCH}"
 
-  # FIX-A2: Patch GRUB files generated by lb config
-  find "${work_dir}/config" -type f \( -name "*.cfg" -o -name "*.conf" \) 2>/dev/null | \
-  while IFS= read -r f; do
-    sed -i \
-      -e 's/Lingmo Linux live menu/mixos live menu/g' \
-      -e 's/Lingmo Linux/mixos/g' \
-      -e 's/LingmoOS/mixos/g' \
-      "${f}" 2>/dev/null || true
-  done
-  log_info "FIX-A: GRUB branding patch applied to generated config files"
-
+  # Remove ALL stale chroot stage stamps so all stages re-run
+  # with correct repos (preserves bootstrap cache, avoids full redownload)
   rm -f "${work_dir}"/.build/chroot_* \
         "${work_dir}"/.build/bootstrap* \
         2>/dev/null || true
@@ -1556,19 +1387,9 @@ run_build() {
   reset_chroot_if_local_settings_override "${work_dir}"
 
   log_step "lb build"
-  local lb_log="${PROJECT_ROOT}/${LOG_DIR}/lb-build-$(date +%Y%m%d-%H%M%S).log"
   echo "---[ live-build output start ]---"
-  lb build 2>&1 | tee "${lb_log}"
-  lb_exit_code=${PIPESTATUS[0]}
+  lb build 2>&1
   echo "---[ live-build output end ]---"
-  if [[ ${lb_exit_code} -ne 0 ]]; then
-    log_error "lb build FAILED (exit code: ${lb_exit_code})"
-    log_error "Full log: ${lb_log}"
-    log_error "Last 50 lines:"
-    tail -50 "${lb_log}" >&2
-    exit ${lb_exit_code}
-  fi
-  log_info "lb build SUCCEEDED"
 
   log_step "Move ISO output"
   local iso_file
@@ -1581,7 +1402,7 @@ run_build() {
   local output_name="${PROJECT_NAME}-${PROJECT_CODENAME}-${PROJECT_VERSION_ID}-${BASE_ARCH}.${yyyymmdd}.iso"
   local output_dir="${PROJECT_ROOT}/${BUILD_DIR}"
   mkdir -p "${output_dir}"
-  mv -f "${iso_file}" "${output_dir}/${output_name}"
+  mv "${iso_file}" "${output_dir}/${output_name}"
   cd "${output_dir}"
   sha256sum "${output_name}" > "${output_name}.sha256"
   md5sum "${output_name}" > "${output_name}.md5"
@@ -1603,7 +1424,7 @@ install_deps() {
     grub-pc-bin grub-efi-amd64-bin grub-efi-ia32-bin mtools squashfs-tools
     genisoimage curl wget rsync git equivs mmdebstrap build-essential g++
     cmake dpkg-dev gettext devscripts debhelper pkg-config extra-cmake-modules
-    ninja-build reprepro python3 imagemagick)
+    ninja-build reprepro python3)
   local missing=()
   for pkg in "${deps[@]}"; do
     if ! dpkg-query -W -f='${Status}' "${pkg}" 2>/dev/null | grep -q "install ok installed"; then
@@ -1623,25 +1444,12 @@ print_summary() {
   echo "Project   : ${PROJECT_NAME} ${PROJECT_VERSION} (${PROJECT_CODENAME})"
   echo "Build     : ${PROJECT_BUILD_DATE}"
   echo "Output    : ${PROJECT_ROOT}/${BUILD_DIR}/"
-  echo ""
-  echo "Fixes yang diterapkan:"
-  echo "  [FIX-A] GRUB: Patch semua file bootloader untuk branding mixos"
-  echo "  [FIX-B] SDDM: Autologin via sddm.conf.d + bootappend autologin"
-  echo "  [FIX-C] Session: mixos-session baru dengan startup sequence yang benar"
-  echo "  [FIX-D] Dock: PinnedLaunchers dinamis berdasarkan package terinstall"
-  echo "  [FIX-E] Build: lb build exit code terdeteksi + log tersimpan"
-  echo "  [FIX-1] Wallpaper: konversi SVG->JPG + fallback solid color"
-  echo "  [FIX-2] Dock: keepalive restart otomatis"
-  echo "  [FIX-3] kwin watchdog: klik selalu responsif"
-  echo "  [FIX-4] Resolusi VirtualBox: auto-detect"
-  echo "  [FIX-5] Branding: About menampilkan mixos"
-  echo "  [FIX-6] Session startup: urutan + delay yang benar"
-  echo "  [FIX-7] spice-vdagent untuk guest VM"
+  echo "Next step : Test ISO dengan test-vm.sh atau VirtualBox"
 }
 
 main() {
   parse_args "$@"
-  log_step "build.sh â€” mixos ISO builder (LingmoOS base)"
+  log_step "build.sh — mixos ISO builder (LingmoOS base)"
   load_config
   validate_environment
   prepare_dirs

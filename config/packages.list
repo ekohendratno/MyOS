@@ -1,109 +1,69 @@
-# packages.list — Paket tambahan di mixos
-# Format: satu paket per baris. # komentar. Ini TAMBAHAN dari paket LingmoOS base.
-# Paket proprietary TIDAK BOLEH masuk tanpa catatan lisensi.
+# packages.list — Paket tambahan mixos (MINIMAL BUILD)
+# Target: ISO ringkas, hanya yang penting untuk daily use.
+# Yang bisa ditunda tidak dimasukkan — install manual nanti.
 
-# === Live System (wajib untuk boot live) ===
+# === Live System (wajib) ===
 live-boot
 live-config
 live-config-systemd
 
 # === Base Tools ===
+ca-certificates
 curl
-wget
-git
-git-lfs
-openssh-client
-rsync
-unzip
-p7zip-full
-zip
-nano
-vim-tiny
-htop
-neofetch
-tree
-less
 file
-bash-completion
+git
+gnupg
+less
+nano
+rsync
+tar
+unzip
+wget
+zip
+xdg-utils
 
-# === Theme Tools ===
-gtk-3-examples
-sassc
-libglib2.0-dev-bin
-
-# === Multimedia ===
-ffmpeg
-imagemagick
-gimp
-eog
-vlc
-celluloid
-rhythmbox
-sound-juicer
-brasero
-
-# === Browser (Debian Bookworm) ===
+# === Browser ===
+chromium
+chromium-l10n
 firefox-esr
-firefox-esr-l10n-id
 
-# === Office ===
-libreoffice-core
-libreoffice-common
-libreoffice-gtk3
-libreoffice-impress
-libreoffice-calc
-libreoffice-writer
-libreoffice-draw
-libreoffice-math
-
-# === Archive Tools ===
+# === Archive ===
 file-roller
-engrampa
 
-# === Network Tools ===
+# === Network ===
 network-manager
 network-manager-gnome
 wpasupplicant
 wireless-tools
-bluetooth
-bluez
-bluez-tools
-pulseaudio-module-bluetooth
-transmission-gtk
-filezilla
-mtr-tiny
 
-# === Fonts (open-source only) ===
+# === Fonts (minimal) ===
 fonts-inter-variable
-fonts-cantarell
 fonts-dejavu-core
-fonts-liberation
 fonts-liberation2
-fonts-noto-core
-fonts-noto-cjk
-fonts-roboto-unhinted
-fonts-hack
-fonts-droid-fallback
 
-# === Utilities ===
+# === Utilities (penting untuk daily use) ===
+dbus-x11                  # session bus for X11 desktop sessions
+dconf-cli                # needed for dconf update in build hooks
 gnome-calculator
-gnome-calendar
-gnome-characters
-gnome-clocks
-gnome-console
-gnome-disk-utility
-gnome-font-viewer
+gnome-console            # terminal
+gnome-disk-utility       # kelola USB/format disk
 gnome-logs
-gnome-screenshot
-gnome-system-monitor
 gnome-text-editor
-gnome-weather
-gthumb
-baobab
-evince
-seahorse
-gufw
-dconf-editor
-dconf-cli
+gnome-screenshot         # screenshot cepat
+gnome-system-monitor     # task manager
 gnome-tweaks
-gparted
+htop
+iputils-ping
+net-tools
+openssh-client
+pciutils
+usbutils
+evince                   # PDF viewer
+libxcb-cursor0           # required by Qt xcb platform plugin
+x11-utils
+xwallpaper                # paint wallpaper when Lingmo desktop does not apply it yet
+plank                    # fallback dock if lingmo-dock crashes during live session
+xterm                    # emergency fallback if Lingmo shell fails
+
+# === Multimedia (ringan) ===
+eog                      # image viewer

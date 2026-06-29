@@ -1,6 +1,7 @@
 # .gitignore untuk mixos
 
 # Build output
+chroot/
 builds/
 upstream/
 cache/

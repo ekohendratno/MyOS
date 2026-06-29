@@ -129,14 +129,35 @@ cat >> "${DB_DIR}/${DB_FILE}" <<'EOF'
 gtk-application-prefers-app-menu=true
 EOF
 
-# === 9. Per-session (override per-user) ===
+# === 9. Lingmo settings default landing ===
+log_info "Menulis settings: lingmo-settings default page"
+cat >> "${DB_DIR}/${DB_FILE}" <<'EOF'
+
+# com.lingmo.settings
+[com/lingmo/settings]
+default-page='appearance'
+sidebar-width=200
+window-width=900
+window-height=600
+EOF
+
+# === 10. Switchboard fallback page ===
+log_info "Menulis settings: switchboard fallback page"
+cat >> "${DB_DIR}/${DB_FILE}" <<'EOF'
+
+# org.pantheon.switchboard
+[org/pantheon/switchboard]
+default-plug='appearance'
+EOF
+
+# === 11. Per-session (override per-user) ===
 log_info "Menulis settings: per-session override"
 mkdir -p "${DB_DIR}/locks"
 cat > "${DB_DIR}/locks/${DB_FILE}-locks" <<'EOF'
 # Locks untuk default system (tidak bisa di-override user)
 EOF
 
-# === 10. Compile dconf database ===
+# === 12. Compile dconf database ===
 log_info "Compile dconf database"
 dconf update
 

@@ -41,7 +41,7 @@ Position=3
 PressureReveal=false
 RevealDelay=200
 RevealDuration=300
-ShowDockItem=false
+ShowDockItem=true
 ShowOnlyMonitor=""
 ShowProgressBar=true
 ShowStatus=true
@@ -57,6 +57,40 @@ WindowWhitelist=':::GtkWindow'
 ZoomEnabled=true
 ZoomFactor=1.2
 EOF
+
+log_info "Menyiapkan launcher dock default"
+mkdir -p "${DOCK_USER_DIR}/launchers"
+
+create_launcher() {
+  local target="$1"
+  local name="$2"
+  local icon="$3"
+  local exec="$4"
+
+  if [[ -f "${target}" ]]; then
+    return 0
+  fi
+
+  cat > "${target}" <<LAUNCHER
+[Desktop Entry]
+Type=Application
+Name=${name}
+Exec=${exec}
+Icon=${icon}
+NoDisplay=true
+Terminal=false
+StartupNotify=true
+Categories=Utility;
+LAUNCHER
+}
+
+create_launcher "${DOCK_USER_DIR}/launchers/files.desktop" "Files" "system-file-manager" "lingmo-filemanager"
+create_launcher "${DOCK_USER_DIR}/launchers/terminal.desktop" "Terminal" "utilities-terminal" "kgx"
+create_launcher "${DOCK_USER_DIR}/launchers/settings.desktop" "Settings" "settings-config" "lingmo-settings"
+create_launcher "${DOCK_USER_DIR}/launchers/browser.desktop" "Browser" "web-browser" "chromium"
+create_launcher "${DOCK_USER_DIR}/launchers/calculator.desktop" "Calculator" "accessories-calculator" "gnome-calculator"
+create_launcher "${DOCK_USER_DIR}/launchers/text-editor.desktop" "Text Editor" "accessories-text-editor" "gnome-text-editor"
+create_launcher "${DOCK_USER_DIR}/launchers/system-monitor.desktop" "System Monitor" "utilities-system-monitor" "gnome-system-monitor"
 
 log_info "Dock settings selesai"
 exit 0

@@ -30,6 +30,9 @@ cat > /etc/dconf/db/mixos.d/10-switchboard <<'EOF'
 # mixos switchboard defaults
 [org/pantheon/switchboard]
 default-plug='appearance'
+
+[com/lingmo/settings]
+default-page='appearance'
 EOF
 
 dconf update

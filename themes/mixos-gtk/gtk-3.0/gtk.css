@@ -7,8 +7,8 @@
  * Lisensi: MIT (mixos project)
  * =========================================================================== */
 
-@import url("resource:///org/gnome/gtk/stylesheet/gtk.css");
-@import url("resource:///org/elementary/gtk/stylesheet/gtk.css");
+@import url("resource:///org/gtk/libgtk/theme/Adwaita/gtk-contained-dark.css");
+@import url("resource:///org/gtk/libgtk/theme/Adwaita/gtk-contained.css");
 
 /* === Warna Dasar === */
 @define-color theme_bg_color #1e1e1e;
@@ -196,4 +196,152 @@ dialog.action-area {
 
 dialog.action-area button {
   padding: 4px 12px;
+}
+
+/* === Context Menu & Popup Menu (macOS-inspired) === */
+menu,
+.context-menu,
+menu:dir(ltr) {
+  background: #2a2a2a;
+  color: #f5f5f5;
+  border: 1px solid #404040;
+  border-radius: 8px;
+  padding: 4px 0;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.3);
+}
+
+menuitem,
+menu > menuitem {
+  padding: 5px 20px 5px 12px;
+  font-size: 9.5pt;
+  border-radius: 4px;
+  margin: 1px 4px;
+  transition: background-color 120ms ease;
+}
+
+menuitem:hover,
+menu > menuitem:hover {
+  background: #0a84ff;
+  color: #ffffff;
+}
+
+menuitem:disabled,
+menu > menuitem:disabled {
+  color: #666666;
+}
+
+menuitem separator,
+menu separator {
+  min-height: 1px;
+  background: #3a3a3a;
+  margin: 4px 12px;
+}
+
+/* Submenu arrow */
+menuitem arrow {
+  min-width: 10px;
+  min-height: 10px;
+  color: #a0a0a0;
+}
+
+menuitem:hover arrow {
+  color: #ffffff;
+}
+
+/* Check & Radio in menus */
+menuitem check,
+menuitem radio {
+  min-width: 14px;
+  min-height: 14px;
+  margin-right: 6px;
+}
+
+menuitem check:checked {
+  color: #0a84ff;
+}
+
+menuitem radio:checked {
+  color: #0a84ff;
+}
+
+/* === Popup / Combobox Menu === */
+combobox menu,
+combobox .menu {
+  background: #2a2a2a;
+  border: 1px solid #404040;
+  border-radius: 6px;
+  padding: 3px 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+/* === Tooltip (macOS style) === */
+tooltip {
+  background: rgba(30, 30, 30, 0.92);
+  color: #f5f5f5;
+  border: 1px solid #404040;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 9pt;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+tooltip * {
+  background: transparent;
+  color: #f5f5f5;
+}
+
+/* === Popover (macOS style) === */
+popover {
+  background: #2a2a2a;
+  border: 1px solid #404040;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+}
+
+popover list {
+  background: transparent;
+}
+
+popover list row {
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+popover list row:hover {
+  background: #0a84ff;
+  color: #ffffff;
+}
+
+/* === OSD (on-screen display) === */
+.osd {
+  background: rgba(30, 30, 30, 0.88);
+  color: #f5f5f5;
+  border-radius: 12px;
+  padding: 12px 20px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+/* === CSD window shadow (macOS-like) === */
+window.csd {
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3);
+}
+
+window.csd:backdrop {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+
+/* === Smooth transitions === */
+button,
+entry,
+switch {
+  transition: all 150ms ease;
+}
+
+button:hover {
+  transition: background-color 100ms ease;
+}
+
+switch slider {
+  transition: all 200ms ease;
 }

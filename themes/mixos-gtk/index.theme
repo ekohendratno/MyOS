@@ -10,3 +10,4 @@ MetacityTheme=mixos-gtk
 IconTheme=mixos-icons
 CursorTheme=mixos-cursors
 ButtonLayout=close,minimize,maximize:menu
+Inherits=Adwaita
